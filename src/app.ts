@@ -1,5 +1,6 @@
 import url from "node:url";
 import { login } from "./routes/login.js";
+import { register } from "./routes/register.js";
 import { IncomingMessage, ServerResponse } from "node:http";
 
 const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
@@ -16,6 +17,9 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
     switch (route) {
       case "/login":
         login(req, res);
+        break;
+      case "/register":
+        register(req, res);
         break;
       default:
         res.statusCode = 404;
