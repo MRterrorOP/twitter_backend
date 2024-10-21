@@ -1,17 +1,23 @@
-import url from "node:url";
 import { login } from "./routes/login.js";
 import { register } from "./routes/register.js";
 import { IncomingMessage, ServerResponse } from "node:http";
 
 const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
   const route = req.url;
-  console.log("this route is hitted", route);
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173/"); // Allow all domains
+  console.log("Route received:", route);
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, OPTIONS"
-  ); // Allow these HTTP methods
+  );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  console.log(req.method);
+  if (req.method === "OPTIONS") {
+    res.statusCode = 200;
+    res.setHeader("Content-type", "application/json");
+    res.end(JSON.stringify({ message: "Your are able to send post request" }));
+  }
   // All post route here
   if (req.method === "POST") {
     switch (route) {
