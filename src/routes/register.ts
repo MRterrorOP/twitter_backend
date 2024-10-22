@@ -1,7 +1,11 @@
 import { IncomingMessage, ServerResponse } from "http";
 import checkEmailExistance from "../db/crud/checkEmailExistance.js";
+import bcrypt from "bcrypt";
+import createUser from "../db/crud/createUser.js";
 
-export const register = (req: IncomingMessage, res: ServerResponse) => {
+const saltRounds = 10;
+
+export const register = async (req: IncomingMessage, res: ServerResponse) => {
   const reqBody: Buffer[] = [];
   req.on("data", (chunk) => {
     reqBody.push(chunk);
@@ -35,9 +39,8 @@ export const register = (req: IncomingMessage, res: ServerResponse) => {
         reqBodyAsJson.password
       );
     const isCnfPassValid = reqBodyAsJson.password === reqBodyAsJson.cnfPassword;
-
+    //check if all thing input filled is correct
     if (isEmailValid && isPassValid && isCnfPassValid) {
-      //TODO: check email if it is already existed in database or not
       const isEmailAlreadyExist = await checkEmailExistance(
         reqBodyAsJson.email
       );
@@ -51,12 +54,36 @@ export const register = (req: IncomingMessage, res: ServerResponse) => {
           })
         );
       }
-      res.statusCode = 200;
-      res.setHeader("Content-type", "application/json");
-      return res.end(JSON.stringify({ message: "User Created successfully" }));
+      const email = reqBodyAsJson.email;
+      const password = reqBodyAsJson.password;
+      try {
+        const hashPassword = await bcrypt.hash(password, saltRounds);
+        const isUserCreadted = await createUser(email, hashPassword);
+        if (isUserCreadted) {
+          res.statusCode = 200;
+          res.setHeader("Content-type", "application/json");
+          return res.end(
+            JSON.stringify({ message: "User Created successfully" })
+          );
+        }
+        res.statusCode = 501;
+        res.setHeader("Content-type", "application/json");
+        return res.end(
+          JSON.stringify({
+            message: "Internal server Error. Try after some time",
+          })
+        );
+      } catch (error) {
+        res.statusCode = 500;
+        res.setHeader("Content-type", "application/json");
+        return res.end(JSON.stringify({ message: "Internal server error" }));
+      }
+
+      // Store hash in your password DB.
     }
+    //If email or password not meet required condition then we return;
     res.statusCode = 400;
-    res.end(
+    return res.end(
       JSON.stringify({
         message: "Email or password not fullfilled the required condition.",
       })
