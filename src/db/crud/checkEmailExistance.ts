@@ -11,6 +11,6 @@ export default async function checkEmailExistance(email: string) {
     return false;
   } catch (err) {
     console.log(err);
-    return;
+    return false;
   }
 }

@@ -2,6 +2,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import checkEmailExistance from "../db/crud/checkEmailExistance.js";
 import bcrypt from "bcrypt";
 import createUser from "../db/crud/createUser.js";
+import createJsonWebToken from "../utils/createJsonWebToken.js";
 
 const saltRounds = 10;
 
@@ -60,10 +61,27 @@ export const register = async (req: IncomingMessage, res: ServerResponse) => {
         const hashPassword = await bcrypt.hash(password, saltRounds);
         const isUserCreadted = await createUser(email, hashPassword);
         if (isUserCreadted) {
-          res.statusCode = 200;
-          res.setHeader("Content-type", "application/json");
-          return res.end(
-            JSON.stringify({ message: "User Created successfully" })
+          const token = createJsonWebToken({
+            email: email,
+            password: password,
+          });
+          if (token) {
+            res.statusCode = 200;
+            res.setHeader("Content-type", "application/json");
+            res.setHeader(
+              "Set-Cookie",
+              `authToken=${token}; HttpOnly; Secure; Max-Age=3600`
+            );
+            return res.end(
+              JSON.stringify({ message: "User Created successfully" })
+            );
+          }
+          res.statusCode = 501;
+          res.setHeader("Content-type", "application.json");
+          res.end(
+            JSON.stringify({
+              message: "Something went wrong, please try again.",
+            })
           );
         }
         res.statusCode = 501;
