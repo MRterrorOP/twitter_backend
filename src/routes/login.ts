@@ -49,9 +49,8 @@ export const login = (req: IncomingMessage, response: ServerResponse) => {
                 "Content-type": "application/json",
                 "set-cookie": `authToken=${token}; HttpOnly; Max-Age=3600`,
               });
-              return response.end(
-                JSON.stringify({ message: "Your are now login with token" })
-              );
+
+              return response.end(JSON.stringify({ token }));
             }
             response.writeHead(200, {
               "Content-Type": "application/json",

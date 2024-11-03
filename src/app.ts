@@ -1,18 +1,14 @@
 import { login } from "./routes/login.js";
 import { register } from "./routes/register.js";
 import { IncomingMessage, ServerResponse } from "node:http";
+import { test } from "./routes/test.js";
 
 const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
   const route = req.url;
   console.log(req.rawHeaders);
   console.log("Route received:", route);
 
-  if (req.headers.origin) {
-    res.setHeader("Access-Control-Allow-Origin", [
-      "http://localhost:5173",
-      "http://localhost:3000/login",
-    ]);
-  }
+  res.setHeader("Access-Control-Allow-Origin", ["http://localhost:5173"]);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -26,7 +22,17 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
 
   console.log(req.method);
   if (req.method === "OPTIONS") {
-    res.statusCode = 200;
+    res.statusCode = 204;
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Headers", [
+      "Content-Type",
+      "Authorization",
+    ]);
+    res.setHeader("Access-Control-Allow-Origin", ["http://localhost:5173"]);
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
     res.end(JSON.stringify({ message: "Your are able to send post request" }));
   }
   // All post route here
@@ -37,6 +43,9 @@ const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
         break;
       case "/register":
         register(req, res);
+        break;
+      case "/test":
+        test(req, res);
         break;
       default:
         res.statusCode = 404;
